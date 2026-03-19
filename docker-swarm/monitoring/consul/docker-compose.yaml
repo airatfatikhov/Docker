@@ -1,0 +1,147 @@
+version: '3.8'
+
+services:
+   consul-1:
+     image: hashicorp/consul:1.22.0
+     container_name: consul-1
+     stdin_open: true
+     tty: true
+     labels:
+       logging: "promtail"
+     environment:
+       - TZ=Europe/Moscow
+     volumes:
+       - /mnt/consul/configs/consul.json:/consul/config/consul.json:ro
+       - /mnt/consul/data/:/consul/data
+     ports:
+       - target: 8500
+         published: 8500
+         protocol: tcp
+         mode: host
+     command: agent -config-file=/consul/config/consul.json
+     networks:
+        - docker_swarm_consul
+     logging:
+       driver: "json-file"
+       options:
+          max-size: "10m"
+          max-file: "3"
+     deploy:
+       replicas: 1
+       placement:
+         constraints:
+            - "node.hostname == "
+       resources:
+         limits:
+           cpus: '3'
+           memory: 8G
+       restart_policy:
+         condition: on-failure
+         delay: 10s
+         max_attempts: 3
+         window: 120s
+       labels:
+         - "traefik.enable=true"
+         - "traefik.http.routers.consul.rule=Host(`consul.monitoring.test.local`)"
+         - "traefik.http.routers.consul.entrypoints=websecure"
+         - "traefik.http.routers.consul.tls=true"
+         - "traefik.http.services.consul.loadbalancer.server.port=8500"
+         - "com.containrrr.watchtower.enable=false"
+   consul-2:
+     image: hashicorp/consul:1.22.0
+     container_name: consul-2
+     stdin_open: true
+     tty: true
+     labels:
+       logging: "promtail"
+     environment:
+       - TZ=Europe/Moscow
+     ports:
+       - target: 8500
+         published: 8500
+         protocol: tcp
+         mode: host
+     volumes:
+       - /mnt/consul/configs/consul.json:/consul/config/consul.json:ro
+       - /mnt/consul/data/:/consul/data
+     command: agent -config-file=/consul/config/consul.json
+     networks:
+       - docker_swarm_consul
+     logging:
+       driver: "json-file"
+       options:
+         max-size: "10m"
+         max-file: "3"
+     deploy:
+       replicas: 1
+       placement:
+         constraints:
+           - "node.hostname == "
+       resources:
+         limits:
+           cpus: '3'
+           memory: 8G
+       restart_policy:
+         condition: on-failure
+         delay: 10s
+         max_attempts: 3
+         window: 120s
+       labels:
+         - "traefik.enable=true"
+         - "traefik.http.routers.consul.rule=Host(`consul.monitoring.test.local`)"
+         - "traefik.http.routers.consul.entrypoints=websecure"
+         - "traefik.http.routers.consul.tls=true"
+         - "traefik.http.services.consul.loadbalancer.server.port=8500"
+         - "com.containrrr.watchtower.enable=false"
+
+   consul-3:
+    image: hashicorp/consul:1.22.0
+    container_name: consul-3
+    stdin_open: true
+    tty: true
+    labels:
+      logging: "promtail"
+    environment:
+      - TZ=Europe/Moscow
+    ports:
+      - target: 8500
+        published: 8500
+        protocol: tcp
+        mode: host
+    volumes:
+      - /mnt/consul/configs/consul.json:/consul/config/consul.json:ro
+      - /mnt/consul/data/:/consul/data
+    command: agent -config-file=/consul/config/consul.json
+    networks:
+      - docker_swarm_consul
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - "node.hostname == "
+      resources:
+        limits:
+          cpus: '3'
+          memory: 8G
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.consul.rule=Host(`consul.monitoring.test.local`)"
+        - "traefik.http.routers.consul.entrypoints=websecure"
+        - "traefik.http.routers.consul.tls=true"
+        - "traefik.http.services.consul.loadbalancer.server.port=8500"
+        - "com.containrrr.watchtower.enable=false"
+
+networks:
+  docker_swarm_consul:
+    external: true
+    name: host
