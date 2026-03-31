@@ -1,0 +1,33 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.env
+
+# Docker
+Dockerfile
+docker-bake.hcl
+.dockerignore
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Docs
+README.md
+LICENSE
+*.md
+
+# Тесты
+tests/
+*.test.py
+.pytest_cache/
