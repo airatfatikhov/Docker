@@ -42,10 +42,14 @@ target "multiarch" {
 target "ci" {
   context = "."
   dockerfile = "Dockerfile"
-  platforms = ["linux/amd64", "linux/arm64"]
+  platforms = ["linux/amd64"]
   output = ["type=registry", "push=true"]
   tags = [
-    "ghcr.io/${GITHUB_USER}/${IMAGE_NAME}:${VERSION}",
-    "ghcr.io/${GITHUB_USER}/${IMAGE_NAME}:latest"
+    "ghcr.io/${GITHUB_USER}/${IMAGE_NAME}:${VERSION}"
+  ]
+  # Автоматические метаданные из Git
+  annotations = [
+    "org.opencontainers.image.source=https://github.com/${GITHUB_USER}/${IMAGE_NAME}",
+    "org.opencontainers.image.version=${VERSION}"
   ]
 }

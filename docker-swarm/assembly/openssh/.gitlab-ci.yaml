@@ -1,0 +1,45 @@
+stages:
+  - build
+  - deploy
+
+# ... ваши предыдущие джобы сборки ...
+
+deploy-to-server:
+  stage: deploy
+  image: alpine:latest  # Легкий образ, содержащий ssh-client и scp
+  before_script:
+    # 1. Устанавливаем необходимые утилиты (openssh-client содержит ssh и scp)
+    - apk add --no-cache openssh-client
+    
+    # 2. Создаем директорию для SSH ключей
+    - mkdir -p ~/.ssh
+    
+    # 3. Записываем приватный ключ из переменной в файл
+    # Важно: chmod 600 обязателен, иначе SSH откажется использовать ключ
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+    - chmod 600 ~/.ssh/id_ed25519
+    
+    # 4. (Опционально) Отключаем строгую проверку хоста, если вы используете IP или динамические DNS
+    # В продакшене лучше добавить отпечаток хоста в known_hosts заранее
+    - echo "StrictHostKeyChecking no" >> ~/.ssh/config
+    - echo "UserKnownHostsFile /dev/null" >> ~/.ssh/config
+
+  script:
+    # 5. Копируем JAR файл на удаленный сервер
+    # Синтаксис: scp [опции] локальный_файл пользователь@хост:удаленная_директория
+    - scp build/libs/*.jar ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/app.jar
+
+    # 6. (Опционально) Перезапуск приложения на удаленном сервере
+    # Используем ssh для выполнения команды на удаленной машине
+    - ssh ${DEPLOY_USER}@${DEPLOY_HOST} "sudo systemctl restart myapp-service"
+    
+    # Или, если нет systemd, просто запуск java:
+    # - ssh ${DEPLOY_USER}@${DEPLOY_HOST} "cd ${DEPLOY_PATH} && nohup java -jar app.jar > app.log 2>&1 &"
+
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"  # Деплоим только из main
+      when: manual  # Ручной запуск для безопасности (можно убрать when: manual для авто-деплоя)
+
+  environment:
+    name: production
+    url: http://${DEPLOY_HOST}:8080

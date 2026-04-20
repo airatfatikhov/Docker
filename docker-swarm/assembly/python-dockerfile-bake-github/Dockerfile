@@ -21,7 +21,7 @@ RUN useradd --create-home --shell /bin/bash appuser
 WORKDIR /app
 
 # Копируем зависимости из builder
-#COPY --from=builder /root/.local /home/appuser/.local
+COPY --from=builder . /home/appuser/.local
 
 # Копируем приложение
 COPY app.py .
